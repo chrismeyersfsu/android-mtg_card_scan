@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-   <net.mitchtech.android.mtg.ResizableCameraView
+   <org.chrismeyers.android.mtg.ResizableCameraView
         android:layout_width="320dp"
         android:layout_height="240dp"
         android:layout_alignParentLeft="true"

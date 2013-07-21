@@ -1,4 +1,4 @@
-package net.mitchtech.android.mtg;
+package org.chrismeyers.android.mtg;
 
 import org.opencv.android.JavaCameraView;
 

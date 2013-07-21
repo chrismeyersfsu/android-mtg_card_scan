@@ -1,5 +1,5 @@
 
-package net.mitchtech.android.mtg;
+package org.chrismeyers.android.mtg;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;

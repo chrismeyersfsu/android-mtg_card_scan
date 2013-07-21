@@ -1,11 +1,11 @@
 
-package net.mitchtech.android.mtg;
+package org.chrismeyers.android.mtg;
 
 import java.util.Date;
 import java.util.List;
 import java.util.ListIterator;
 
-import net.mitchtech.android.mtg.R;
+import org.chrismeyers.android.mtg.R;
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase;
