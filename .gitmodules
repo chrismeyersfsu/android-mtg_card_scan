@@ -1,0 +1,3 @@
+[submodule "android_libopencv"]
+	path = android_libopencv
+	url = git@github.com:chrismeyersfsu/android_libopencv
