@@ -1,0 +1,11 @@
+== Overview ==
+
+Android app + Image Recognition of Magic the Gathering playing cards for purposes of inventory and pricing.
+
+== Installing ==
+
+After pulling down this project, ensure you pull down the submodules.
+<pre>git submodule update --init</pre>
+
+<p>Import <i>android_mtg_card_scan</i> into eclipse.</p>
+<p>Import <i>android_mtg_card_scan/android_libopencv</i> into eclipse.</p>
