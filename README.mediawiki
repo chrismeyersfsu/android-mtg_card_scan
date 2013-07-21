@@ -14,3 +14,4 @@ After pulling down this project, ensure you pull down the submodules.
 
 <img src="screenshots/card_detected_and_slightly_rotated_320x240.png" />
 <img src="screenshots/card_detected_and_slightly_rotated_640x480.png" />
+<img src="screenshots/card_detected_and_slightly_rotated_contour_640x480.png" />
