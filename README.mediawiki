@@ -9,3 +9,8 @@ After pulling down this project, ensure you pull down the submodules.
 
 <p>Import <i>android_mtg_card_scan</i> into eclipse.</p>
 <p>Import <i>android_mtg_card_scan/android_libopencv</i> into eclipse.</p>
+
+== Screenshots ==
+
+<img src="screenshots/card_detected_and_slightly_rotated_320x240.png" />
+<img src="screenshots/card_detected_and_slightly_rotated_640x480.png" />
