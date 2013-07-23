@@ -189,99 +189,8 @@ public class Card {
         pointsArray.add(matPoint);
         Core.polylines(img, pointsArray, isClosed, color);
     }
+    
 
-    /**
-     * Will zone in on the largest rectangle
-     * 
-     * @param imageGray
-     * @return
-     */
-    static int findLargestRectangle(Mat imgFinal) {
-        // Mat imgFinal = new Mat(240, 320, imageGray.type()), imgCanny = null;
-        Mat imgCanny = null;
-        List<MatOfPoint> edgeContours = new ArrayList<MatOfPoint>();
-        Card.ContourArea greatestArea = null;
-        Rect rect = null;
-
-        resizeIfNeeded(imgFinal, IMG_PROCESS_WIDTH, IMG_PROCESS_HEIGHT);
-        imgCanny = ImageCanny(imgFinal);
-
-        Imgproc.findContours(imgCanny, edgeContours, new Mat(), Imgproc.RETR_LIST,
-                Imgproc.CHAIN_APPROX_SIMPLE);
-        if (edgeContours.size() == 0) {
-            imgCanny.copyTo(imgFinal);
-            return RECTANGLE_NOT_FOUND_CANNY;
-        }
-
-        // find the largest contour box
-        greatestArea = findGreatestContourByArea(edgeContours, 120, 0);
-        if (greatestArea.points == null || greatestArea.area < CARD_AREA_MIN) {
-            imgCanny.copyTo(imgFinal);
-            return RECTANGLE_NOT_FOUND_CANNY;
-        }
-
-        /* Draw the largest contour */
-        // drawContour(imgFinal, greatestArea.points, COLOR_YELLOW);
-
-        // draw a box around the largest contours
-        rect = Imgproc.boundingRect(greatestArea.points);
-
-        Point[] corners = identifyRectangleCornersByMax(greatestArea.points.toArray());
-
-        RotatedRect rect2 = Imgproc.minAreaRect(new MatOfPoint2f(greatestArea.points.toArray()));
-
-        Point[] rectPoints = new Point[4];
-        rect2.points(rectPoints);
-        Point [] cornerPoints = identifyCorners(rectPoints);
-        
-        Card.drawLines(imgFinal, cornerPoints, true, COLOR_YELLOW);
-        // Core.rectangle(imgFinal, rectPoints[0], rectPoints[2], COLOR_YELLOW);
-
-        // if (!Double.isInfinite(topSlope) && !Double.isInfinite(-topSlope)) {
-        // Log.d("Y", "p1 " + rectPoints[0].y + " p2 " + rectPoints[1].y);
-        // if (riseIsUp(rectPoints[0], rectPoints[1]) == true) {
-        // angle = 0;
-        // } else {
-        // angle = Math.atan(topSlope) * 180 / Math.PI;
-        // }
-        // }
-
-        // Resume coding here. Based on the direction(slope) of the card, rotate
-        // clockwise or counter-clockwise
-        // Could just change sign of the angle also.
-        // remove the above if statement, we don't need to calculate the angle
-        // ourselves
-
-        double topSlope = Math.abs(slope(cornerPoints[0], cornerPoints[1]));
-        if (riseIsUp(cornerPoints[0], cornerPoints[1]) == true) {
-            topSlope *= -1;
-        }
-        double angle = Math.atan(topSlope) * 180 / Math.PI;
-        
-        Log.d("ROTATE", "slope " + topSlope + " angle " + angle + " rect2 angle " + rect2.angle);
-        Log.d("CORNERS", cornerPoints[0].x + "," + cornerPoints[0].y + " " + cornerPoints[1].x + ","
-                + cornerPoints[1].y + " " + cornerPoints[2].x + "," + cornerPoints[2].y + " "
-                + cornerPoints[3].x + "," + cornerPoints[3].y);
-
-        if (angle != 0) {
-            rotateImageLarge(imgFinal, imgFinal, angle);
-        }
-        // Core.rectangle(imgFinal, new Point(rect.x, rect.y), new Point(rect.x
-        // + rect.width, rect.y
-        // + rect.height), COLOR_YELLOW);
-
-        // extract an image that is only in the box
-        /*
-         * imgFinal = imgFinal.submat(rect.y, rect.y + rect.height, rect.x,
-         * rect.x + rect.width);
-         */
-
-        return RECTANGLE_FOUND;
-    }
-
-    static ArrayList<Integer> findLongestLines(MatOfPoint points) {
-        return null;
-    }
 
     double distance(double x1, double y1, double x2, double y2)
     {
@@ -318,6 +227,26 @@ public class Card {
         Size finalSize = new Size(maxSize, maxSize);
         Imgproc.warpAffine(imgIn, imgOut, rotationMatrix,
                 finalSize);
+    }
+
+    static void transformParallelogramToRectangle(Point[] tightOutline, Point[] boundingCorners,
+            Mat imgIn, Mat imgOut) {
+        MatOfPoint2f src = new MatOfPoint2f(tightOutline);
+        MatOfPoint2f dest = new MatOfPoint2f(boundingCorners);
+
+        Mat transform = Imgproc.getPerspectiveTransform(src, dest);
+        /*
+         * TODO: the last parameter to warpPerspective() can crop the image.
+         * Consider cropping the image to the boundingCorners size, maybe by
+         * passing in the imgOut to be the boundingCorners size, or another
+         * param to this function of type Size
+         */
+        Size imgOutSize = imgOut.size();
+        int maxSize = (int)
+                Math.max((double) imgOutSize.height, (double)
+                        imgOutSize.width);
+        Size finalSize = new Size(maxSize, maxSize);
+        Imgproc.warpPerspective(imgIn, imgOut, transform, finalSize);
     }
 
     /**
@@ -359,20 +288,20 @@ public class Card {
 
         return identifyCorners(corners);
     }
-    
-    static Point [] identifyCorners(Point [] points) {
+
+    static Point[] identifyCorners(Point[] points) {
         ArrayList<Point> corners = new ArrayList<Point>();
-        for (int i=0; i < points.length; ++i) {
+        for (int i = 0; i < points.length; ++i) {
             corners.add(points[i]);
         }
         return identifyCorners(corners);
     }
-    
-    static Point [] identifyCorners(ArrayList<Point> corners) {
+
+    static Point[] identifyCorners(ArrayList<Point> corners) {
         Point[] cornerPoints = new Point[4];
         Point p1, p2, p3, p4;
         Point topLeft = null, topRight = null, botRight = null, botLeft = null;
-        
+
         /* Top set of points */
         // find p1
         p1 = corners.get(0);
@@ -415,4 +344,104 @@ public class Card {
         cornerPoints[3] = botLeft;
         return cornerPoints;
     }
+    
+    
+    
+
+    /**
+     * Will zone in on the largest rectangle
+     * 
+     * @param imageGray
+     * @return
+     */
+    static int findLargestRectangle(Mat imgFinal) {
+        // Mat imgFinal = new Mat(240, 320, imageGray.type()), imgCanny = null;
+        Mat imgCanny = null;
+        List<MatOfPoint> edgeContours = new ArrayList<MatOfPoint>();
+        Card.ContourArea greatestArea = null;
+        Rect rect = null;
+
+        resizeIfNeeded(imgFinal, IMG_PROCESS_WIDTH, IMG_PROCESS_HEIGHT);
+        imgCanny = ImageCanny(imgFinal);
+
+        Imgproc.findContours(imgCanny, edgeContours, new Mat(), Imgproc.RETR_LIST,
+                Imgproc.CHAIN_APPROX_SIMPLE);
+        if (edgeContours.size() == 0) {
+            imgCanny.copyTo(imgFinal);
+            return RECTANGLE_NOT_FOUND_CANNY;
+        }
+
+        // find the largest contour box
+        greatestArea = findGreatestContourByArea(edgeContours, 120, 0);
+        if (greatestArea.points == null || greatestArea.area < CARD_AREA_MIN) {
+            imgCanny.copyTo(imgFinal);
+            return RECTANGLE_NOT_FOUND_CANNY;
+        }
+
+        /* Draw the largest contour */
+        // drawContour(imgFinal, greatestArea.points, COLOR_YELLOW);
+
+        // draw a box around the largest contours
+        rect = Imgproc.boundingRect(greatestArea.points);
+
+        Point[] cornersTightByMax = identifyRectangleCornersByMax(greatestArea.points.toArray());
+
+        RotatedRect rect2 = Imgproc.minAreaRect(new MatOfPoint2f(greatestArea.points.toArray()));
+
+        Point[] rectPoints = new Point[4];
+        rect2.points(rectPoints);
+        Point[] cornerPoints = identifyCorners(rectPoints);
+
+
+        // Core.rectangle(imgFinal, rectPoints[0], rectPoints[2], COLOR_YELLOW);
+
+        // if (!Double.isInfinite(topSlope) && !Double.isInfinite(-topSlope)) {
+        // Log.d("Y", "p1 " + rectPoints[0].y + " p2 " + rectPoints[1].y);
+        // if (riseIsUp(rectPoints[0], rectPoints[1]) == true) {
+        // angle = 0;
+        // } else {
+        // angle = Math.atan(topSlope) * 180 / Math.PI;
+        // }
+        // }
+
+        // Resume coding here. Based on the direction(slope) of the card, rotate
+        // clockwise or counter-clockwise
+        // Could just change sign of the angle also.
+        // remove the above if statement, we don't need to calculate the angle
+        // ourselves
+
+        double topSlope = Math.abs(slope(cornerPoints[0], cornerPoints[1]));
+        if (Double.isInfinite(topSlope) || Double.isInfinite(-topSlope)) {
+            topSlope = 0;
+        } else if (riseIsUp(cornerPoints[0], cornerPoints[1]) == true) {
+            topSlope *= -1;
+        }
+        double angle = Math.atan(topSlope) * 180 / Math.PI;
+
+        Log.d("ROTATE", "slope " + topSlope + " angle " + angle + " rect2 angle " + rect2.angle);
+        Log.d("CORNERS", cornerPoints[0].x + "," + cornerPoints[0].y + " " + cornerPoints[1].x
+                + ","
+                + cornerPoints[1].y + " " + cornerPoints[2].x + "," + cornerPoints[2].y + " "
+                + cornerPoints[3].x + "," + cornerPoints[3].y);
+
+
+        // Core.rectangle(imgFinal, new Point(rect.x, rect.y), new Point(rect.x
+        // + rect.width, rect.y
+        // + rect.height), COLOR_YELLOW);
+
+        // extract an image that is only in the box
+        /*
+         * imgFinal = imgFinal.submat(rect.y, rect.y + rect.height, rect.x,
+         * rect.x + rect.width);
+         */
+        if (angle != 0) {
+            rotateImageLarge(imgFinal, imgFinal, angle);
+            transformParallelogramToRectangle(cornersTightByMax, cornerPoints, imgFinal, imgFinal);
+        }
+        Card.drawLines(imgFinal, cornerPoints, true, COLOR_YELLOW);
+
+
+        return RECTANGLE_FOUND;
+    }
+
 }
