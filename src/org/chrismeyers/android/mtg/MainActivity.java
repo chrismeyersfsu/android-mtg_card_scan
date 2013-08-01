@@ -148,12 +148,12 @@ public class MainActivity extends Activity implements CvCameraViewListener2 {
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         Mat gray = inputFrame.gray();
-        Mat imgCard = gray.clone();
+        Mat imgCard = new Mat(310, 223, gray.type());
         Mat liveMat = new Mat();
         
 
         if (mFrameCount % MODE_PROCESS_EVERY_N_FRAME == 0) {
-            int res = Card.findLargestRectangle(imgCard);
+            int res = Card.findCard(gray, imgCard);
             if (MODE_ONLY_DISPLAY_MATCH == 0
                     || (MODE_ONLY_DISPLAY_MATCH == 1 && res == Card.RECTANGLE_FOUND)) {
                 updateSnapshotFrame(imgCard);
