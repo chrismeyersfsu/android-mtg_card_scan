@@ -1,6 +1,7 @@
 == Overview ==
 
 Android app + Image Recognition of Magic the Gathering playing cards for purposes of inventory and pricing.
+<a href="https://github.com/chrismeyersfsu/android_mtg_card_scan/raw/v0.1/bin/android_mtg_card_scan.apk">MTG Card Scan APK</a>
 
 == Installing ==
 
